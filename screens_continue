@@ -1,0 +1,257 @@
+activity_main.xml:
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/lastNameEditText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Фамилия"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/firstNameEditText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Имя"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/lastNameEditText" />
+
+    <EditText
+        android:id="@+id/middleNameEditText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Отчество"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/firstNameEditText" />
+
+    <EditText
+        android:id="@+id/ageEditText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Возраст"
+        android:inputType="number"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/middleNameEditText" />
+
+    <EditText
+        android:id="@+id/hobbyDescriptionEditText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Описание хобби"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ageEditText" />
+
+    <Button
+        android:id="@+id/nextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Далее"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/hobbyDescriptionEditText" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+activity_info.xml:
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/backButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="Назад" />
+    
+</RelativeLayout>
+
+activity_info.xml:
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/infoTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"/>
+
+    </LinearLayout>
+
+</ScrollView>
+
+SplashActivity.kt:
+import android.content.Intent
+import android.os.Bundle
+import android.os.Handler
+import androidx.appcompat.app.AppCompatActivity
+
+class SplashActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_splash)
+
+        Handler().postDelayed({
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+        }, 3000) 
+    }
+}
+
+MainActivity.kt:
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
+import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var viewModel: MainViewModel
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+
+        val firstNameEditText = findViewById<EditText>(R.id.firstNameEditText)
+        val lastNameEditText = findViewById<EditText>(R.id.lastNameEditText)
+        val middleNameEditText = findViewById<EditText>(R.id.middleNameEditText)
+        val ageEditText = findViewById<EditText>(R.id.ageEditText)
+        val hobbyDescriptionEditText = findViewById<EditText>(R.id.hobbyDescriptionEditText)
+        val nextButton = findViewById<Button>(R.id.nextButton)
+
+        val sharedPref = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        firstNameEditText.setText(sharedPref.getString("firstName", ""))
+        lastNameEditText.setText(sharedPref.getString("lastName", ""))
+        middleNameEditText.setText(sharedPref.getString("middleName", ""))
+        ageEditText.setText(sharedPref.getString("age", ""))
+        hobbyDescriptionEditText.setText(sharedPref.getString("hobbyDescription", ""))
+
+        nextButton.setOnClickListener {
+            saveStateToSharedPreferences() // Сохранение состояния при нажатии на кнопку "Далее"
+            startActivity(Intent(this, InfoActivity::class.java))
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.saveStateMenuItem -> {
+                saveStateToSharedPreferences()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun saveStateToSharedPreferences() {
+        val sharedPref = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            val firstNameEditText = findViewById<EditText>(R.id.firstNameEditText)
+            val lastNameEditText = findViewById<EditText>(R.id.lastNameEditText)
+            val middleNameEditText = findViewById<EditText>(R.id.middleNameEditText)
+            val ageEditText = findViewById<EditText>(R.id.ageEditText)
+            val hobbyDescriptionEditText = findViewById<EditText>(R.id.hobbyDescriptionEditText)
+
+            putString("firstName", firstNameEditText.text.toString())
+            putString("lastName", lastNameEditText.text.toString())
+            putString("middleName", middleNameEditText.text.toString())
+            putString("age", ageEditText.text.toString())
+            putString("hobbyDescription", hobbyDescriptionEditText.text.toString())
+            apply()
+        }
+    }
+}
+
+InfoActivity.kt:
+import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+
+class InfoActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_info)
+    }
+}
+
+MainViewModel.kt:
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+
+class MainViewModel : ViewModel() {
+    private val _firstName = MutableLiveData<String>()
+    val firstName: LiveData<String> = _firstName
+
+    private val _lastName = MutableLiveData<String>()
+    val lastName: LiveData<String> = _lastName
+
+    private val _middleName = MutableLiveData<String>()
+    val middleName: LiveData<String> = _middleName
+
+    private val _age = MutableLiveData<String>()
+    val age: LiveData<String> = _age
+
+    private val _hobbyDescription = MutableLiveData<String>()
+    val hobbyDescription: LiveData<String> = _hobbyDescription
+
+    fun setFirstName(firstName: String) {
+        _firstName.value = firstName
+    }
+
+    fun setLastName(lastName: String) {
+        _lastName.value = lastName
+    }
+
+    fun setMiddleName(middleName: String) {
+        _middleName.value = middleName
+    }
+
+    fun setAge(age: String) {
+        _age.value = age
+    }
+
+    fun setHobbyDescription(hobbyDescription: String) {
+        _hobbyDescription.value = hobbyDescription
+    }
+}
+
+res/menu/main_menu.xml:
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/saveStateMenuItem"
+        android:title="Сохранить состояние"
+        app:showAsAction="ifRoom" />
+
+</menu>
